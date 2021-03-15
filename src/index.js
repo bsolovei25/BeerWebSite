@@ -26,7 +26,7 @@ function autocomplete (inp, arr) {
         /*  execute a function when someone clicks on the item value (DIV element): */
         b.addEventListener(CLICK, function (e) {
           /*  insert the value for the autocomplete text field: */
-          inp.value = this.getElementsByTagName(INPUT)[ZERO_INDEX].value
+          inp.value = e.target.innerText
           /*  close the list of autocompleted values,
           (or any other open lists of autocompleted values: */
           //closeAllLists()
@@ -129,9 +129,13 @@ function isPatternValid (inputField) {
 document.addEventListener(CLICK, function (e) {
   const className = e.target.className
   const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
+  const isLoadMore = className === BUTTONSUCCESS
 
   if (clickButtonClasses) {
     fetchAction()
+  }
+  if (isLoadMore) {
+    fetchMoreBeers()
   }
 })
 
@@ -159,6 +163,18 @@ function deleteAllDivs () {
   //if (isRedBoxExists) {}
 }
 
+function fetchMoreBeers () {
+  const arrayOfSuccess = ParseLocalStorage()
+  const localStorageLen = arrayOfSuccess.length
+  const inputedBeer = arrayOfSuccess[localStorageLen - 1]
+  const searchedBeer = APIFORBEERNAME + inputedBeer
+
+  fetch(searchedBeer)
+    .then((res) => { return res.json() })
+    .then((data) => { data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description, LOADMORESTRING)) })
+    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+}
+
 function fetchAction () {
   const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
   const searchedBeer = APIFORBEERNAME + inputedBeer
@@ -179,30 +195,13 @@ function deleteRedBox () {
 }
 
 function createDivBeer () {
-  const [name, abv, image_url, description] = arguments
+  const [name, abv, image_url, description, loadMore] = arguments
   deleteRedBox()
-  /*  <div class="row single-div border border">
-        <div class="col-2 beerName">
-          <p class="beerNameParagraph">Your Beer Name</p>
-        </div>
-        <div class="col-1 beerABV">
-          <p class="beerABVParagraph"></p>
-        </div>
-        <div class="col-3 beerTitle">
-          <img class = 'imgClass' src="" alt="Trulli">
-        </div>
-        <div class="col-6 beerDescription">
-          <p class="beerDescriptionParagraph">
-            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
-          </p>
-        </div>
-        <div class="col-1 beerAddToFavorites">
-          <p class="beerAddToFavoritesParagraph">
-            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
-          </p>
-        </div>
-      </div>  */
-  //row single-div border border
+  const isLoadMoreState = loadMore !== LOADMORESTRING
+  const arrOfShownBeers = ParseLocalStorage()
+  const BeerCollection = document.querySelector(CONTAINERBEER)
+  const currentBeerIndex = BeerCollection.children.length
+
   const divContainer = document.querySelector(CONTAINERBEER)
   const divSingleRow = document.createElement(DIV)
 
@@ -222,6 +221,7 @@ function createDivBeer () {
   const buttonbeerAddToFavoritesButton = document.createElement(BUTTON)
 
   divSingleRow.className = SINGLEBORDERROW
+  divSingleRow.id = BLOCK + currentBeerIndex
   divSingleRow.style.margin = MARGINSLEFTRIGHT
   divBeerName.className = COLBEERNAME
   pBeerName.className = BEERNAMEPARAGRAPH
@@ -259,7 +259,16 @@ function createDivBeer () {
   divSingleRow.appendChild(divBeerAddToFavorites)
 
   divContainer.appendChild(divSingleRow)
-  addMoreButton()
+  //autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
+  if (isLoadMoreState && buttonSuccessExists()) {
+    addMoreButton()
+  }
+}
+
+function buttonSuccessExists () {
+  const buttonSuccess = document.querySelector(CLASSBUTTONSUCCESS)
+
+  return buttonSuccess === null
 }
 
 function addMoreButton () {
@@ -269,8 +278,11 @@ function addMoreButton () {
 
   divLoadMore.className = DIVFLEXCENTER
   buttonLoadMore.className = BUTTONSUCCESS
-  buttonLoadMore.innerHTML = LoadMoreString
+  buttonLoadMore.innerHTML = LOADMORESTRING
   buttonLoadMore.setAttribute(TYPE, BUTTON)
+
+  divLoadMore.appendChild(buttonLoadMore)
+  body.appendChild(divLoadMore)
 }
 
 function ParseLocalStorage () {

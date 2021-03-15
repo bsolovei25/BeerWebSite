@@ -1,0 +1,9 @@
+html {
+  scroll-behavior: smooth;
+}
+
+
+.fa-arrow-up {
+  color: rgb(1, 5, 1);
+  font-size: 25px;
+}
