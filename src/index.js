@@ -35,9 +35,22 @@ function autocomplete (inp, arr) {
       }
     }
   })
+
+  inp.addEventListener(KEYUP, function (e) {
+    const inputedBeer = document.querySelector('#' + BEERNAMEINPUT)
+
+    if (isPatternValid(inputedBeer)) {
+      document.querySelector(SEARCHBUTTON).disabled = TRUE
+    } else {
+      document.querySelector(SEARCHBUTTON).disabled = FALSE
+    }
+  })
+
   /*  execute a function presses a key on the keyboard: */
   inp.addEventListener(KEYDOWN, function (e) {
     let x = document.getElementById(this.id + AUTOCOMPLETELIST)
+    const inputedBeer = document.querySelector('#' + BEERNAMEINPUT)
+
     if (x) x = x.getElementsByTagName(DIV)
     if (e.keyCode === FORTY) {
       /*  If the arrow DOWN key is pressed,
@@ -52,11 +65,10 @@ function autocomplete (inp, arr) {
       /*  and and make the current item more visible: */
       addActive(x)
     } else if (e.keyCode === THIRTEEN) {
-      /*  If the ENTER key is pressed, prevent the form from being submitted, */
-      e.preventDefault()
-      if (currentFocus > MINONE) {
-        /*  and simulate a click on the "active" item:  */
-        if (x) x[currentFocus].click()
+      if (isPatternValid(inputedBeer)) {
+        e.preventDefault()
+      } else {
+        fetchAction()
       }
     }
   })
@@ -92,8 +104,184 @@ function autocomplete (inp, arr) {
   })
 }
 
+function saveSuccsess (field) { // добавление новой таски
+  // Retrieve the object from storage
+  let arrofSearches = []
+  let finalArray = []
+
+  const retrievedObject = localStorage.getItem(SUCCSESSFULSEARCHES)
+
+  if (retrievedObject !== null) {
+    arrofSearches = JSON.parse(retrievedObject)
+  }
+  finalArray = [...arrofSearches, field]
+  // Put the object into storage
+  localStorage.setItem(SUCCSESSFULSEARCHES, JSON.stringify(finalArray))
+}
+
+function isPatternValid (inputField) {
+  const patternMismathch = inputField.validity.patternMismatch
+  const isEmpty = inputField.validity.valueMissing
+
+  return isEmpty || patternMismathch
+}
+
+document.addEventListener(CLICK, function (e) {
+  const className = e.target.className
+  const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
+
+  if (clickButtonClasses) {
+    fetchAction()
+  }
+})
+
+function generateRedBox () {
+  const getAllBlocks = document.querySelector(CONTAINERBEER)
+  let row = document.createElement(DIV)
+  row.className = ROWCLASSNAME
+  row.setAttribute(STYLE, ROWSTYLE)
+  let errorMessage = document.createElement(P)
+
+  errorMessage.textContent = ERRORMESSAGE
+  errorMessage.setAttribute(STYLE, ERRORMESSAGESTYLE)
+  row.appendChild(errorMessage)
+  getAllBlocks.appendChild(row)
+  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
+}
+
+function deleteAllDivs () {
+  const deleteAllBlocks = document.querySelector(CONTAINERBEER)
+
+  while (deleteAllBlocks.children.length !== ZERO_INDEX) {
+    deleteAllBlocks.removeChild(deleteAllBlocks.children[ZERO_INDEX])
+    //deleteAllBlocks.children.splice(ZERO_INDEX, ONE_INDEX)
+  }
+  //if (isRedBoxExists) {}
+}
+
+function fetchAction () {
+  const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
+  const searchedBeer = APIFORBEERNAME + inputedBeer
+  saveSuccsess(inputedBeer)
+
+  fetch(searchedBeer)
+    .then((res) => { return res.json() })
+    .then((data) => { createDivBeer(data[0].name, data[0].abv, data[0].image_url, data[0].description) })
+    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+}
+
+function deleteRedBox () {
+  const isRedExists = document.querySelector(ERRORMESSAGESTRING) !== null
+
+  if (isRedExists) {
+    deleteAllDivs()
+  }
+}
+
+function createDivBeer () {
+  const [name, abv, image_url, description] = arguments
+  deleteRedBox()
+  /*  <div class="row single-div border border">
+        <div class="col-2 beerName">
+          <p class="beerNameParagraph">Your Beer Name</p>
+        </div>
+        <div class="col-1 beerABV">
+          <p class="beerABVParagraph"></p>
+        </div>
+        <div class="col-3 beerTitle">
+          <img class = 'imgClass' src="" alt="Trulli">
+        </div>
+        <div class="col-6 beerDescription">
+          <p class="beerDescriptionParagraph">
+            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
+          </p>
+        </div>
+        <div class="col-1 beerAddToFavorites">
+          <p class="beerAddToFavoritesParagraph">
+            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
+          </p>
+        </div>
+      </div>  */
+  //row single-div border border
+  const divContainer = document.querySelector(CONTAINERBEER)
+  const divSingleRow = document.createElement(DIV)
+
+  const divBeerName = document.createElement(DIV)
+  const pBeerName = document.createElement(P)
+
+  const divBeerABV = document.createElement(DIV)
+  const pBeerABV = document.createElement(P)
+
+  const divBeerTitle = document.createElement(DIV)
+  const imgBeerTitle = document.createElement(IMG)
+
+  const divBeerDescription = document.createElement(DIV)
+  const pBeerDescription = document.createElement(P)
+
+  const divBeerAddToFavorites = document.createElement(DIV)
+  const buttonbeerAddToFavoritesButton = document.createElement(BUTTON)
+
+  divSingleRow.className = SINGLEBORDERROW
+  divSingleRow.style.margin = MARGINSLEFTRIGHT
+  divBeerName.className = COLBEERNAME
+  pBeerName.className = BEERNAMEPARAGRAPH
+
+  divBeerABV.className = BEERABV
+  pBeerABV.className = BEERABVPARAGRAPH
+
+  divBeerTitle.className = BEERTITLE
+  imgBeerTitle.className = IMGCLASS
+  imgBeerTitle.alt = name
+
+  divBeerDescription.className = BEERDESCRIPTION
+  pBeerDescription.className = BEERDESCRIPTIONPARAGRAPH
+
+  divBeerAddToFavorites.className = BEERADDTOFAVORITES
+  buttonbeerAddToFavoritesButton.className = BEERADDTOFAVORITESBEER
+  buttonbeerAddToFavoritesButton.innerHTML = ADD
+
+  pBeerName.innerHTML = name
+  pBeerABV.innerHTML = abv
+  imgBeerTitle.setAttribute(SRC, image_url)
+  imgBeerTitle.setAttribute(WIDTH, TH70)
+  pBeerDescription.innerHTML = description
+
+  divBeerName.appendChild(pBeerName)
+  divBeerABV.appendChild(pBeerABV)
+  divBeerTitle.appendChild(imgBeerTitle)
+  divBeerDescription.appendChild(pBeerDescription)
+  divBeerAddToFavorites.appendChild(buttonbeerAddToFavoritesButton)
+
+  divSingleRow.appendChild(divBeerName)
+  divSingleRow.appendChild(divBeerABV)
+  divSingleRow.appendChild(divBeerTitle)
+  divSingleRow.appendChild(divBeerDescription)
+  divSingleRow.appendChild(divBeerAddToFavorites)
+
+  divContainer.appendChild(divSingleRow)
+  addMoreButton()
+}
+
+function addMoreButton () {
+  const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
+  const divLoadMore = document.createElement(DIV)
+  const buttonLoadMore = document.createElement(BUTTON)
+
+  divLoadMore.className = DIVFLEXCENTER
+  buttonLoadMore.className = BUTTONSUCCESS
+  buttonLoadMore.innerHTML = LoadMoreString
+  buttonLoadMore.setAttribute(TYPE, BUTTON)
+}
+
+function ParseLocalStorage () {
+  const retrievedObject = localStorage.getItem(SUCCSESSFULSEARCHES)
+  const parsedObj = JSON.parse(retrievedObject)
+
+  return parsedObj
+}
+
 /*  An array containing all the country names in the world: */
-const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"]
+//let countries
 
 /*  initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:  */
-autocomplete(document.getElementById('myInput'), countries)
+autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
