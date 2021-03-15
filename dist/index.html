@@ -11,25 +11,45 @@
     <link rel="stylesheet" href="../style/styles.css">
   </head>
   <body>
-    <h1 class="d-inline p-2 align-self-center">BeerWebSite</h1>
-    <button type="button" class="btn btn-info p-2">Info</button>
     <div class="row">
       <div class="col-md-2 offset-md-4"><h1 class="d-inline p-2 align-self-center">BeerWebSite</h1></div>
       <div class="col-md-1 offset-md-1"><button type="button" class="btn btn-info p-2">Favourites</button></div>
       <div class="col-md-1 offset-md-1">
-        <form autocomplete="off">
+        <!--<form autocomplete="off">-->
           <div class="col-10">
             <label for="validationDefaultUsername">Username</label>
             <div class="input-group">
               <div class="input-group-prepend">
-                <span class="input-group" id="inputGroupPrepend2"><button type = "submit" class="btn btn-primary btn-sm"><i class="fa fa-search" aria-hidden="true"></i></button></span>
+                <span class="input-group" id="inputGroupPrepend2"><button type = "button" class="btn btn-primary btn-sm searchForBeer" disabled><i class="fa fa-search" aria-hidden="true"></i></button></span>
               </div>
-              <input id="myInput" type="text" name="myCountry" placeholder="Country" required>
+              <input autocomplete="off" id="beerNameInput" type="text" name="beername" placeholder="Your Beer" aria-describedby="basic-addon3" pattern="^[a-zA-Z0-9]*$" required>
             </div>
           </div>
-        </form>
+        <!--</form>-->
       </div>
     </div>
+    <p id="result"></p>
+    <div class="containerBeer">
+      <!--<div class="row single-div border border">
+        <div class="col-2 beerName">
+          <p class="beerNameParagraph">Your Beer Name</p>
+        </div>
+        <div class="col-1 beerABV">
+          <p class="beerABVParagraph"></p>
+        </div>
+        <div class="col-3 beerTitle">
+          <img class = 'imgClass' src="" alt="Trulli">
+        </div>
+        <div class="col-6 beerDescription">
+          <p class="beerDescriptionParagraph">
+            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
+          </p>
+        </div>
+      </div>-->
+    </div>
+    <!--<div class="d-flex justify-content-center">
+      <button type="button" class="btn btn-success">Load More Bears</button>  
+    </div> -->
 
 
    <script src="../src/constants.js"></script>
