@@ -26,7 +26,7 @@ function autocomplete (inp, arr) {
         /*  execute a function when someone clicks on the item value (DIV element): */
         b.addEventListener(CLICK, function (e) {
           /*  insert the value for the autocomplete text field: */
-          inp.value = this.getElementsByTagName(INPUT)[ZERO_INDEX].value
+          inp.value = e.target.innerText
           /*  close the list of autocompleted values,
           (or any other open lists of autocompleted values: */
           //closeAllLists()
@@ -68,7 +68,8 @@ function autocomplete (inp, arr) {
       if (isPatternValid(inputedBeer)) {
         e.preventDefault()
       } else {
-        fetchAction()
+        window.globalCounter++
+        fetchAction(THIRTEEN)
       }
     }
   })
@@ -129,9 +130,20 @@ function isPatternValid (inputField) {
 document.addEventListener(CLICK, function (e) {
   const className = e.target.className
   const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
+  const isLoadMore = className === BUTTONSUCCESS
+  const isScroll = className === GOTOTOPCLASS
 
   if (clickButtonClasses) {
+    window.globalCounter++
+    fetchAction(SEARCHBUTTON)
+  }
+  if (isLoadMore) {
+    window.globalCounter++
     fetchAction()
+  }
+  if (isScroll) {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
   }
 })
 
@@ -159,14 +171,49 @@ function deleteAllDivs () {
   //if (isRedBoxExists) {}
 }
 
-function fetchAction () {
+function deleteWarning () {
+  const deleteAllBlocks = document.getElementsByTagName(BODY)[0]
+  const warningLength = deleteAllBlocks.children.length - 1
+  const warningElement = deleteAllBlocks.children[warningLength]
+
+  deleteAllBlocks.removeChild(warningElement)
+}
+
+function getApiAddress () {
+  const arrayOfSuccess = ParseLocalStorage()
+  const localStorageLen = arrayOfSuccess.length
+  const inputedBeer = arrayOfSuccess[localStorageLen - 1]
+  const searchedBeer = PAGINATIONBEER1 + window.globalCounter + PAGINATIONBEER2 + inputedBeer
+
+  return searchedBeer
+}
+
+/*  function fetchMoreBeers () {
+  fetch(getApiAddress())
+    .then((res) => { return res.json() })
+    .then((data) => { data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description)) })
+    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+} */
+
+function fetchAction (action) {
+  if (action === SEARCHBUTTON || action === THIRTEEN) {
+    window.globalCounter = ONE_INDEX
+  }
   const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
-  const searchedBeer = APIFORBEERNAME + inputedBeer
   saveSuccsess(inputedBeer)
 
-  fetch(searchedBeer)
+  fetch(getApiAddress())
     .then((res) => { return res.json() })
-    .then((data) => { createDivBeer(data[0].name, data[0].abv, data[0].image_url, data[0].description) })
+    .then((data) => {
+      if (data.length !== 0) {
+        data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
+      } else {
+        const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) === null
+        if (isYellowExists) {
+          GenrateWarningBox()
+        }
+      }
+    })
     .catch(function (params) { deleteAllDivs(); generateRedBox() })
 }
 
@@ -178,31 +225,23 @@ function deleteRedBox () {
   }
 }
 
+function deleteYellowBox () {
+  const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) !== null
+
+  if (isYellowExists) {
+    deleteWarning()
+  }
+}
+
 function createDivBeer () {
   const [name, abv, image_url, description] = arguments
   deleteRedBox()
-  /*  <div class="row single-div border border">
-        <div class="col-2 beerName">
-          <p class="beerNameParagraph">Your Beer Name</p>
-        </div>
-        <div class="col-1 beerABV">
-          <p class="beerABVParagraph"></p>
-        </div>
-        <div class="col-3 beerTitle">
-          <img class = 'imgClass' src="" alt="Trulli">
-        </div>
-        <div class="col-6 beerDescription">
-          <p class="beerDescriptionParagraph">
-            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
-          </p>
-        </div>
-        <div class="col-1 beerAddToFavorites">
-          <p class="beerAddToFavoritesParagraph">
-            What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
-          </p>
-        </div>
-      </div>  */
-  //row single-div border border
+  deleteYellowBox()
+  //const isLoadMoreState = loadMore !== LOADMORESTRING
+  const arrOfShownBeers = ParseLocalStorage()
+  const BeerCollection = document.querySelector(CONTAINERBEER)
+  const currentBeerIndex = BeerCollection.children.length
+
   const divContainer = document.querySelector(CONTAINERBEER)
   const divSingleRow = document.createElement(DIV)
 
@@ -222,6 +261,7 @@ function createDivBeer () {
   const buttonbeerAddToFavoritesButton = document.createElement(BUTTON)
 
   divSingleRow.className = SINGLEBORDERROW
+  divSingleRow.id = BLOCK + currentBeerIndex
   divSingleRow.style.margin = MARGINSLEFTRIGHT
   divBeerName.className = COLBEERNAME
   pBeerName.className = BEERNAMEPARAGRAPH
@@ -259,7 +299,16 @@ function createDivBeer () {
   divSingleRow.appendChild(divBeerAddToFavorites)
 
   divContainer.appendChild(divSingleRow)
-  addMoreButton()
+  //autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
+  if (buttonSuccessExists()) {
+    addMoreButton()
+  }
+}
+
+function buttonSuccessExists () {
+  const buttonSuccess = document.querySelector(CLASSBUTTONSUCCESS)
+
+  return buttonSuccess === null
 }
 
 function addMoreButton () {
@@ -269,8 +318,25 @@ function addMoreButton () {
 
   divLoadMore.className = DIVFLEXCENTER
   buttonLoadMore.className = BUTTONSUCCESS
-  buttonLoadMore.innerHTML = LoadMoreString
+  buttonLoadMore.innerHTML = LOADMORESTRING
   buttonLoadMore.setAttribute(TYPE, BUTTON)
+
+  divLoadMore.appendChild(buttonLoadMore)
+  body.appendChild(divLoadMore)
+}
+
+function GenrateWarningBox () {
+  const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
+  let row = document.createElement(DIV)
+  row.className = ROWCLASSNAMEWARNING
+  row.setAttribute(STYLE, ROWSTYLEWARNING)
+  let errorMessage = document.createElement(P)
+
+  errorMessage.textContent = WARNINGMESSAGE
+  errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
+  row.appendChild(errorMessage)
+  body.appendChild(row)
+  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
 }
 
 function ParseLocalStorage () {
@@ -285,3 +351,15 @@ function ParseLocalStorage () {
 
 /*  initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:  */
 autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
+
+function scrollFunction () {
+  let scrollBtn = document.querySelector(GOTOTOPID)
+
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollBtn.style.display = BLOCK;
+  } else {
+    scrollBtn.style.display = NONE;
+  }
+}
+
+window.onscroll = function () { scrollFunction() }
