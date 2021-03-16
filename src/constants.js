@@ -5,6 +5,8 @@ const BUTTON = 'button'
 const IMG = 'IMG'
 const ID = 'id'
 const SRC = 'src'
+const TWO_INDEX = 2
+const TWENTY_EIGHT = 28
 const AUTOCOMPLETELIST = 'autocomplete-list'
 const AUTOCOMPLETEACTIVE = 'autocomplete-active'
 const CLASS = 'class'
@@ -45,6 +47,8 @@ const ADD = 'Add'
 const MARGINSLEFTRIGHT = '25px 50px'
 const BEERNAMEINPUT = 'beerNameInput'
 const APIFORBEERNAME = 'https://api.punkapi.com/v2/beers?beer_name='
+const PAGINATIONBEER1 = 'https://api.punkapi.com/v2/beers?page='
+const PAGINATIONBEER2 = '&beer_name='
 const SUCCSESSFULSEARCHES = 'SuccsessArray'
 const BODY = 'body'
 const DIVFLEXCENTER = 'd-flex justify-content-center'
@@ -52,6 +56,9 @@ const BUTTONSUCCESS = 'btn btn-success'
 const CLASSBUTTONSUCCESS = '.btn-success'
 const LOADMORESTRING = 'Load More Bears'
 const BLOCK = 'block'
+const NONE = 'none'
+const GOTOTOPCLASS = 'goToTop'
+const GOTOTOPID = '#goToTopid'
 
 const ROWCLASSNAME = 'row single-div border errorMessage'
 const STYLE = 'style'
@@ -62,3 +69,10 @@ const SEARCHBUTTON = '.searchForBeer'
 const TRUE = true
 const FALSE = false
 const ERRORMESSAGESTRING = '.errorMessage'
+
+
+const ROWCLASSNAMEWARNING = 'row single-div border warningMessage'
+const ROWSTYLEWARNING = 'background-color: yellow; margin-top: 25px;'
+const WARNINGMESSAGE = 'No more pages avalible'
+const WARNINGMESSAGESTYLE = 'padding-left:40%;margin: 0px 30px; background-color: yellow;'
+const WARNINGMESSAGESTRING = '.warningMessage'

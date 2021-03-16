@@ -68,7 +68,8 @@ function autocomplete (inp, arr) {
       if (isPatternValid(inputedBeer)) {
         e.preventDefault()
       } else {
-        fetchAction()
+        window.globalCounter++
+        fetchAction(THIRTEEN)
       }
     }
   })
@@ -130,12 +131,19 @@ document.addEventListener(CLICK, function (e) {
   const className = e.target.className
   const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
   const isLoadMore = className === BUTTONSUCCESS
+  const isScroll = className === GOTOTOPCLASS
 
   if (clickButtonClasses) {
-    fetchAction()
+    window.globalCounter++
+    fetchAction(SEARCHBUTTON)
   }
   if (isLoadMore) {
-    fetchMoreBeers()
+    window.globalCounter++
+    fetchAction()
+  }
+  if (isScroll) {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
   }
 })
 
@@ -163,26 +171,49 @@ function deleteAllDivs () {
   //if (isRedBoxExists) {}
 }
 
-function fetchMoreBeers () {
+function deleteWarning () {
+  const deleteAllBlocks = document.getElementsByTagName(BODY)[0]
+  const warningLength = deleteAllBlocks.children.length - 1
+  const warningElement = deleteAllBlocks.children[warningLength]
+
+  deleteAllBlocks.removeChild(warningElement)
+}
+
+function getApiAddress () {
   const arrayOfSuccess = ParseLocalStorage()
   const localStorageLen = arrayOfSuccess.length
   const inputedBeer = arrayOfSuccess[localStorageLen - 1]
-  const searchedBeer = APIFORBEERNAME + inputedBeer
+  const searchedBeer = PAGINATIONBEER1 + window.globalCounter + PAGINATIONBEER2 + inputedBeer
 
-  fetch(searchedBeer)
-    .then((res) => { return res.json() })
-    .then((data) => { data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description, LOADMORESTRING)) })
-    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+  return searchedBeer
 }
 
-function fetchAction () {
+/*  function fetchMoreBeers () {
+  fetch(getApiAddress())
+    .then((res) => { return res.json() })
+    .then((data) => { data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description)) })
+    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+} */
+
+function fetchAction (action) {
+  if (action === SEARCHBUTTON || action === THIRTEEN) {
+    window.globalCounter = ONE_INDEX
+  }
   const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
-  const searchedBeer = APIFORBEERNAME + inputedBeer
   saveSuccsess(inputedBeer)
 
-  fetch(searchedBeer)
+  fetch(getApiAddress())
     .then((res) => { return res.json() })
-    .then((data) => { createDivBeer(data[0].name, data[0].abv, data[0].image_url, data[0].description) })
+    .then((data) => {
+      if (data.length !== 0) {
+        data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
+      } else {
+        const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) === null
+        if (isYellowExists) {
+          GenrateWarningBox()
+        }
+      }
+    })
     .catch(function (params) { deleteAllDivs(); generateRedBox() })
 }
 
@@ -194,10 +225,19 @@ function deleteRedBox () {
   }
 }
 
+function deleteYellowBox () {
+  const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) !== null
+
+  if (isYellowExists) {
+    deleteWarning()
+  }
+}
+
 function createDivBeer () {
-  const [name, abv, image_url, description, loadMore] = arguments
+  const [name, abv, image_url, description] = arguments
   deleteRedBox()
-  const isLoadMoreState = loadMore !== LOADMORESTRING
+  deleteYellowBox()
+  //const isLoadMoreState = loadMore !== LOADMORESTRING
   const arrOfShownBeers = ParseLocalStorage()
   const BeerCollection = document.querySelector(CONTAINERBEER)
   const currentBeerIndex = BeerCollection.children.length
@@ -260,7 +300,7 @@ function createDivBeer () {
 
   divContainer.appendChild(divSingleRow)
   //autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
-  if (isLoadMoreState && buttonSuccessExists()) {
+  if (buttonSuccessExists()) {
     addMoreButton()
   }
 }
@@ -285,6 +325,20 @@ function addMoreButton () {
   body.appendChild(divLoadMore)
 }
 
+function GenrateWarningBox () {
+  const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
+  let row = document.createElement(DIV)
+  row.className = ROWCLASSNAMEWARNING
+  row.setAttribute(STYLE, ROWSTYLEWARNING)
+  let errorMessage = document.createElement(P)
+
+  errorMessage.textContent = WARNINGMESSAGE
+  errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
+  row.appendChild(errorMessage)
+  body.appendChild(row)
+  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
+}
+
 function ParseLocalStorage () {
   const retrievedObject = localStorage.getItem(SUCCSESSFULSEARCHES)
   const parsedObj = JSON.parse(retrievedObject)
@@ -297,3 +351,15 @@ function ParseLocalStorage () {
 
 /*  initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:  */
 autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
+
+function scrollFunction () {
+  let scrollBtn = document.querySelector(GOTOTOPID)
+
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollBtn.style.display = BLOCK;
+  } else {
+    scrollBtn.style.display = NONE;
+  }
+}
+
+window.onscroll = function () { scrollFunction() }
