@@ -89,20 +89,29 @@ function autocomplete (inp, arr) {
       x[i].classList.remove(AUTOCOMPLETEACTIVE)
     }
   }
-  function closeAllLists (elmnt) {
-    /*  close all autocomplete lists in the document,
-    except the one passed as an argument: */
+  /*  function closeAllLists (elmnt) {
     const x = document.getElementsByClassName(AUTOCOMPLETEITEMS)
     for (let i = 0; i < x.length; i++) {
       if (elmnt !== x[i] && elmnt !== inp) {
         x[i].parentNode.removeChild(x[i])
       }
     }
-  }
+  } */
   /*  execute a function when someone clicks in the document: */
-  document.addEventListener(CLICK, function (e) {
+  /*document.addEventListener(CLICK, function (e) {
     closeAllLists(e.target)
-  })
+  })*/
+}
+
+function closeAllLists (elmnt) {
+  const inputBeers = document.getElementById(BEERNAMEINPUT)
+  const x = document.getElementsByClassName(AUTOCOMPLETEITEMS)
+
+  for (let i = 0; i < x.length; i++) {
+    if (elmnt !== x[i] && elmnt !== inputBeers) {
+      x[i].parentNode.removeChild(x[i])
+    }
+  }
 }
 
 function saveSuccsess (field) { // добавление новой таски
@@ -132,15 +141,17 @@ document.addEventListener(CLICK, function (e) {
   const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
   const isLoadMore = className === BUTTONSUCCESS
   const isScroll = className === GOTOTOPCLASS
+  const inDropDown = e.target.localName === ISDROPDOWNELEMENT
 
-  if (clickButtonClasses) {
+  if (clickButtonClasses || inDropDown || isLoadMore) {
     window.globalCounter++
+    closeAllLists(e.target)
     fetchAction(SEARCHBUTTON)
   }
-  if (isLoadMore) {
+  /*  if (isLoadMore) {
     window.globalCounter++
     fetchAction()
-  }
+  }  */
   if (isScroll) {
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
