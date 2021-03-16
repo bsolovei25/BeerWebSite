@@ -59,6 +59,7 @@ const BLOCK = 'block'
 const NONE = 'none'
 const GOTOTOPCLASS = 'goToTop'
 const GOTOTOPID = '#goToTopid'
+const ISDROPDOWNELEMENT = 'strong'
 
 const ROWCLASSNAME = 'row single-div border errorMessage'
 const STYLE = 'style'
