@@ -1,1 +1,1 @@
-window.globalCounter = 1
+window.pageIndex = 1

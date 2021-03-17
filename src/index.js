@@ -1,37 +1,38 @@
 function autocomplete (inp, arr) {
   let currentFocus
   inp.addEventListener(INPUT, function (e) {
-    let a, b, i, val = this.value
+    let helperBlock, singleHint, i, userInputedValue = this.value
     /*  close any already open lists of autocompleted values  */
     closeAllLists()
-    if (!val) { return false }
+    if (!userInputedValue) { return false }
     currentFocus = -1
     /*  create a DIV element that will contain the items (values):  */
-    a = document.createElement(DIV)
-    a.setAttribute(ID, this.id + AUTOCOMPLETELIST)
-    a.setAttribute(CLASS, AUTOCOMPLETEITEMS)
+    helperBlock = document.createElement(DIV)
+    helperBlock.setAttribute(ID, this.id + AUTOCOMPLETELIST)
+    helperBlock.setAttribute(CLASS, AUTOCOMPLETEITEMS)
     /*  append the DIV element as a child of the autocomplete container:  */
-    this.parentNode.appendChild(a)
+    this.parentNode.appendChild(helperBlock)
     /*  for each item in the array... */
     for (i = 0; i < arr.length; i++) {
       /*  check if the item starts with the same letters as the text field value: */
-      if (arr[i].substr(0, val.length).toUpperCase() === val.toUpperCase()) {
+      if (arr[i].substr(0, userInputedValue.length).toUpperCase() === userInputedValue.toUpperCase()) {
         /*  create a DIV element for each matching element: */
-        b = document.createElement(DIV)
+        singleHint = document.createElement(DIV)
         /*  make the matching letters bold: */
-        b.innerHTML = STRONGSTART + arr[i].substr(0, val.length) + STRONGEND
-        b.innerHTML += arr[i].substr(val.length)
+        singleHint.innerHTML = STRONGSTART + arr[i].substr(0, userInputedValue.length) + STRONGEND
+        singleHint.innerHTML += arr[i].substr(userInputedValue.length)
         /*  insert a input field that will hold the current array item's value: */
-        b.innerHTML += INPUTHIDDENSTART + arr[i] + INPUTHIDDENEND
+        singleHint.innerHTML += INPUTHIDDENSTART + arr[i] + INPUTHIDDENEND
         /*  execute a function when someone clicks on the item value (DIV element): */
-        b.addEventListener(CLICK, function (e) {
+        singleHint.addEventListener(CLICK, function ({ target: { innerText } }) {
           /*  insert the value for the autocomplete text field: */
-          inp.value = e.target.innerText
+          // inp.value = e.target.innerText
+          inp.value = innerText
           /*  close the list of autocompleted values,
           (or any other open lists of autocompleted values: */
           //closeAllLists()
         })
-        a.appendChild(b)
+        helperBlock.appendChild(singleHint)
       }
     }
   })
@@ -40,36 +41,36 @@ function autocomplete (inp, arr) {
     const inputedBeer = document.querySelector('#' + BEERNAMEINPUT)
 
     if (isPatternValid(inputedBeer)) {
-      document.querySelector(SEARCHBUTTON).disabled = TRUE
+      document.querySelector(SEARCHBUTTON).disabled = true
     } else {
-      document.querySelector(SEARCHBUTTON).disabled = FALSE
+      document.querySelector(SEARCHBUTTON).disabled = false
     }
   })
 
   /*  execute a function presses a key on the keyboard: */
   inp.addEventListener(KEYDOWN, function (e) {
-    let x = document.getElementById(this.id + AUTOCOMPLETELIST)
+    let beerNameInput = document.getElementById(this.id + AUTOCOMPLETELIST)
     const inputedBeer = document.querySelector('#' + BEERNAMEINPUT)
 
-    if (x) x = x.getElementsByTagName(DIV)
-    if (e.keyCode === FORTY) {
+    if (beerNameInput) beerNameInput = beerNameInput.getElementsByTagName(DIV)
+    if (e.keyCode === DOWNKEYPRESSED) {
       /*  If the arrow DOWN key is pressed,
       increase the currentFocus variable: */
       currentFocus++
       /*  and and make the current item more visible: */
-      addActive(x)
-    } else if (e.keyCode === THIRTYEIGHT) { //up
+      addActive(beerNameInput)
+    } else if (e.keyCode === UPKEYPRESSED) { //up
       /*  If the arrow UP key is pressed,
       decrease the currentFocus variable: */
       currentFocus--
       /*  and and make the current item more visible: */
-      addActive(x)
-    } else if (e.keyCode === THIRTEEN) {
+      addActive(beerNameInput)
+    } else if (e.keyCode === ENTERKEYPRESS) {
       if (isPatternValid(inputedBeer)) {
         e.preventDefault()
       } else {
-        window.globalCounter++
-        fetchAction(THIRTEEN)
+        window.pageIndex++
+        fetchAction(ENTERKEYPRESS)
       }
     }
   })
@@ -114,6 +115,14 @@ function closeAllLists (elmnt) {
   }
 }
 
+function createConfigObj (args) {
+  const [pageNumber, BeerName] = args
+  Object.defineProperty(PAGINATIONBEER, KEY, {
+    PAGINATIONBEER1: pageNumber,
+    PAGINATIONBEER2: BeerName
+  })
+}
+
 function saveSuccsess (field) { // добавление новой таски
   // Retrieve the object from storage
   let arrofSearches = []
@@ -136,34 +145,34 @@ function isPatternValid (inputField) {
   return isEmpty || patternMismathch
 }
 
-document.addEventListener(CLICK, function (e) {
-  const className = e.target.className
+document.addEventListener(CLICK, function ({ target: { className, localName } }) {
   const clickButtonClasses = className === BUTTONBEER || className === FAFASEARCH
   const isLoadMore = className === BUTTONSUCCESS
-  const isScroll = className === GOTOTOPCLASS
-  const inDropDown = e.target.localName === ISDROPDOWNELEMENT
+  const isScroll = className === ACTIONARROWCLICK
+  const inDropDown = localName === ISDROPDOWNELEMENT
 
-  if (clickButtonClasses || inDropDown || isLoadMore) {
-    window.globalCounter++
-    closeAllLists(e.target)
+  if (clickButtonClasses || inDropDown) {
+    window.pageIndex++
+    closeAllLists(event.target)
     fetchAction(SEARCHBUTTON)
   }
-  /*  if (isLoadMore) {
-    window.globalCounter++
+  if (isLoadMore) {
+    window.pageIndex++
     fetchAction()
-  }  */
+  }
   if (isScroll) {
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = ZERO_INDEX
+    document.documentElement.scrollTop = ZERO_INDEX
   }
 })
 
+
 function generateRedBox () {
   const getAllBlocks = document.querySelector(CONTAINERBEER)
-  let row = document.createElement(DIV)
+  const row = document.createElement(DIV)
   row.className = ROWCLASSNAME
   row.setAttribute(STYLE, ROWSTYLE)
-  let errorMessage = document.createElement(P)
+  const errorMessage = document.createElement(P)
 
   errorMessage.textContent = ERRORMESSAGE
   errorMessage.setAttribute(STYLE, ERRORMESSAGESTYLE)
@@ -194,7 +203,7 @@ function getApiAddress () {
   const arrayOfSuccess = ParseLocalStorage()
   const localStorageLen = arrayOfSuccess.length
   const inputedBeer = arrayOfSuccess[localStorageLen - 1]
-  const searchedBeer = PAGINATIONBEER1 + window.globalCounter + PAGINATIONBEER2 + inputedBeer
+  const searchedBeer = PAGINATIONBEER1 + window.pageIndex + PAGINATIONBEER2 + inputedBeer
 
   return searchedBeer
 }
@@ -207,8 +216,8 @@ function getApiAddress () {
 } */
 
 function fetchAction (action) {
-  if (action === SEARCHBUTTON || action === THIRTEEN) {
-    window.globalCounter = ONE_INDEX
+  if (action === SEARCHBUTTON || action === ENTERKEYPRESS) {
+    window.pageIndex = ONE_INDEX
   }
   const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
   saveSuccsess(inputedBeer)
@@ -216,20 +225,34 @@ function fetchAction (action) {
   fetch(getApiAddress())
     .then((res) => { return res.json() })
     .then((data) => {
-      if (data.length !== 0) {
+      if (data.length) {
         data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
       } else {
-        const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) === null
-        if (isYellowExists) {
-          GenrateWarningBox()
-        }
+        GenerateCorrectBox()
       }
     })
     .catch(function (params) { deleteAllDivs(); generateRedBox() })
 }
 
+function GenerateCorrectBox () {
+  const isYellowExists = document.querySelector(WARNINGMESSAGECLASS) === null
+  const isRedExists = document.querySelector(ERRORMESSAGECLASS) === null
+  const ishistoryEmpty = document.querySelector(CONTAINERBEER).children.length
+  const generateRedBarIfConditionsTrue = !ishistoryEmpty && isRedExists
+  const generateYellowBarIfConditionsTrue = isYellowExists && isRedExists
+
+  if (generateRedBarIfConditionsTrue) {
+    deleteAllDivs()
+    generateRedBox()
+  } else {
+    if (generateYellowBarIfConditionsTrue) {
+      GenrateWarningBox()
+    }
+  }
+}
+
 function deleteRedBox () {
-  const isRedExists = document.querySelector(ERRORMESSAGESTRING) !== null
+  const isRedExists = document.querySelector(ERRORMESSAGECLASS) !== null
 
   if (isRedExists) {
     deleteAllDivs()
@@ -237,7 +260,7 @@ function deleteRedBox () {
 }
 
 function deleteYellowBox () {
-  const isYellowExists = document.querySelector(WARNINGMESSAGESTRING) !== null
+  const isYellowExists = document.querySelector(WARNINGMESSAGECLASS) !== null
 
   if (isYellowExists) {
     deleteWarning()
@@ -329,7 +352,7 @@ function addMoreButton () {
 
   divLoadMore.className = DIVFLEXCENTER
   buttonLoadMore.className = BUTTONSUCCESS
-  buttonLoadMore.innerHTML = LOADMORESTRING
+  buttonLoadMore.innerHTML = LOADMOREMESSAGE
   buttonLoadMore.setAttribute(TYPE, BUTTON)
 
   divLoadMore.appendChild(buttonLoadMore)
@@ -338,10 +361,10 @@ function addMoreButton () {
 
 function GenrateWarningBox () {
   const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
-  let row = document.createElement(DIV)
+  const row = document.createElement(DIV)
   row.className = ROWCLASSNAMEWARNING
   row.setAttribute(STYLE, ROWSTYLEWARNING)
-  let errorMessage = document.createElement(P)
+  const errorMessage = document.createElement(P)
 
   errorMessage.textContent = WARNINGMESSAGE
   errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
@@ -364,13 +387,10 @@ function ParseLocalStorage () {
 autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
 
 function scrollFunction () {
-  let scrollBtn = document.querySelector(GOTOTOPID)
+  const scrollBtn = document.querySelector(GOTOTOPID)
+  const isScrollLessThan = document.body.scrollTop > FIRSTBLOCKHEIGHT || document.documentElement.scrollTop > FIRSTBLOCKHEIGHT
 
-  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    scrollBtn.style.display = BLOCK;
-  } else {
-    scrollBtn.style.display = NONE;
-  }
+  isScrollLessThan ? scrollBtn.style.display = BLOCK : scrollBtn.style.display = NONE
 }
 
 window.onscroll = function () { scrollFunction() }
