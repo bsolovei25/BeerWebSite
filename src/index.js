@@ -123,12 +123,13 @@ document.addEventListener(CLICK, function ({ target: { className, localName } })
   const isScroll = className === ACTIONARROWCLICK
   const inDropDown = localName === ISDROPDOWNELEMENT
   const searchButton = clickButtonClasses || inDropDown
+  const isAddToFavorites = className === BEERADDTOFAVORITESBEER
 
-  eventHandling({ searchButton, isLoadMore, isScroll })
+  eventHandling(searchButton, isLoadMore, isScroll, isAddToFavorites)
 })
 
-function eventHandling (parameters) {
-  const [searchButton, loadMore, scroll] = [parameters.searchButton, parameters.isLoadMore, parameters.isScroll]
+function eventHandling () {
+  const [searchButton, loadMore, scroll, addFavorites] = arguments
   if (searchButton) {
     incrementPageIndex()
     closeAllLists(event.target)
@@ -176,7 +177,6 @@ function deleteWarning () {
 
   deleteAllBlocks.removeChild(warningElement)
 }
-
 
 function fetchAction (action) {
   if (action === SEARCHBUTTON || action === ENTERKEYPRESS) {
