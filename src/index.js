@@ -69,7 +69,7 @@ function autocomplete (inp, arr) {
       if (isPatternValid(inputedBeer)) {
         e.preventDefault()
       } else {
-        window.pageIndex++
+        incrementPageIndex()
         fetchAction(ENTERKEYPRESS)
       }
     }
@@ -106,11 +106,13 @@ function autocomplete (inp, arr) {
 
 function closeAllLists (elmnt) {
   const inputBeers = document.getElementById(BEERNAMEINPUT)
-  const x = document.getElementsByClassName(AUTOCOMPLETEITEMS)
+  const autoCompleteHints = document.getElementsByClassName(AUTOCOMPLETEITEMS)
 
-  for (let i = 0; i < x.length; i++) {
-    if (elmnt !== x[i] && elmnt !== inputBeers) {
-      x[i].parentNode.removeChild(x[i])
+  for (let i = 0; i < autoCompleteHints.length; i++) {
+    const isItemPresent = elmnt !== autoCompleteHints[i] && elmnt !== inputBeers
+
+    if (isItemPresent) {
+      autoCompleteHints[i].parentNode.removeChild(autoCompleteHints[i])
     }
   }
 }
@@ -150,22 +152,45 @@ document.addEventListener(CLICK, function ({ target: { className, localName } })
   const isLoadMore = className === BUTTONSUCCESS
   const isScroll = className === ACTIONARROWCLICK
   const inDropDown = localName === ISDROPDOWNELEMENT
+  const searchButton = clickButtonClasses || inDropDown
 
-  if (clickButtonClasses || inDropDown) {
-    window.pageIndex++
+  eventHandling({ searchButton, isLoadMore, isScroll })
+  /*  if (clickButtonClasses || inDropDown) {
+    incrementPageIndex()
     closeAllLists(event.target)
     fetchAction(SEARCHBUTTON)
   }
   if (isLoadMore) {
-    window.pageIndex++
+    incrementPageIndex()
     fetchAction()
   }
   if (isScroll) {
     document.body.scrollTop = ZERO_INDEX
     document.documentElement.scrollTop = ZERO_INDEX
-  }
+  } */
 })
 
+function eventHandling (parameters) {
+  const [searchButton, loadMore, scroll] = [parameters.searchButton, parameters.isLoadMore, parameters.isScroll]
+  //(parameters:{isLoadMore, isScroll, searchButton})
+  if (searchButton) {
+    incrementPageIndex()
+    closeAllLists(event.target)
+    fetchAction(SEARCHBUTTON)
+  }
+  if (loadMore) {
+    incrementPageIndex()
+    fetchAction()
+  }
+  if (scroll) {
+    document.body.scrollTop = ZERO_INDEX
+    document.documentElement.scrollTop = ZERO_INDEX
+  }
+}
+
+function incrementPageIndex () {
+  window.pageIndex++
+}
 
 function generateRedBox () {
   const getAllBlocks = document.querySelector(CONTAINERBEER)
@@ -192,7 +217,7 @@ function deleteAllDivs () {
 }
 
 function deleteWarning () {
-  const deleteAllBlocks = document.getElementsByTagName(BODY)[0]
+  const [deleteAllBlocks] = document.getElementsByTagName(BODY)
   const warningLength = deleteAllBlocks.children.length - 1
   const warningElement = deleteAllBlocks.children[warningLength]
 
@@ -223,23 +248,24 @@ function fetchAction (action) {
   saveSuccsess(inputedBeer)
 
   fetch(getApiAddress())
-    .then((res) => { return res.json() })
+    .then(res => { return res.json() })
     .then((data) => {
       if (data.length) {
-        data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
+        //data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
+        data.forEach(({ name, abv, image_url, description }) => createDivBeer(name, abv, image_url, description))
       } else {
         GenerateCorrectBox()
       }
     })
-    .catch(function (params) { deleteAllDivs(); generateRedBox() })
+    .catch((params) => { deleteAllDivs(); generateRedBox() })
 }
 
 function GenerateCorrectBox () {
-  const isYellowExists = document.querySelector(WARNINGMESSAGECLASS) === null
+  const isWarningBlockExists = document.querySelector(WARNINGMESSAGECLASS) === null
   const isRedExists = document.querySelector(ERRORMESSAGECLASS) === null
   const ishistoryEmpty = document.querySelector(CONTAINERBEER).children.length
   const generateRedBarIfConditionsTrue = !ishistoryEmpty && isRedExists
-  const generateYellowBarIfConditionsTrue = isYellowExists && isRedExists
+  const generateYellowBarIfConditionsTrue = isWarningBlockExists && isRedExists
 
   if (generateRedBarIfConditionsTrue) {
     deleteAllDivs()
@@ -260,9 +286,9 @@ function deleteRedBox () {
 }
 
 function deleteYellowBox () {
-  const isYellowExists = document.querySelector(WARNINGMESSAGECLASS) !== null
+  const isWarningBlockExists = document.querySelector(WARNINGMESSAGECLASS) !== null
 
-  if (isYellowExists) {
+  if (isWarningBlockExists) {
     deleteWarning()
   }
 }
@@ -272,11 +298,12 @@ function createDivBeer () {
   deleteRedBox()
   deleteYellowBox()
   //const isLoadMoreState = loadMore !== LOADMORESTRING
+  const divContainer = document.querySelector(CONTAINERBEER)
+
   const arrOfShownBeers = ParseLocalStorage()
   const BeerCollection = document.querySelector(CONTAINERBEER)
   const currentBeerIndex = BeerCollection.children.length
 
-  const divContainer = document.querySelector(CONTAINERBEER)
   const divSingleRow = document.createElement(DIV)
 
   const divBeerName = document.createElement(DIV)
@@ -294,49 +321,83 @@ function createDivBeer () {
   const divBeerAddToFavorites = document.createElement(DIV)
   const buttonbeerAddToFavoritesButton = document.createElement(BUTTON)
 
+  divSingleProperties(divSingleRow, currentBeerIndex)
+  divBeerNameProperties(divBeerName, pBeerName)
+  divBeerABVProperties(divBeerABV, pBeerABV)
+  divBeerTitleProperties(divBeerTitle, imgBeerTitle, name)
+  divBeerDescriptionProperties(divBeerDescription, pBeerDescription)
+  divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+  pBeerProperties(pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, name, abv, image_url, description)
+  appendAllDivs(divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites, pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, buttonbeerAddToFavoritesButton)
+  combineToSingleDiv(divSingleRow, divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites)
+
+  divContainer.appendChild(divSingleRow)
+  if (buttonSuccessExists()) {
+    addMoreButton()
+  }
+}
+
+function divSingleProperties (divSingleRow, currentBeerIndex) {
   divSingleRow.className = SINGLEBORDERROW
   divSingleRow.id = BLOCK + currentBeerIndex
   divSingleRow.style.margin = MARGINSLEFTRIGHT
+}
+
+function divBeerNameProperties (divBeerName, pBeerName) {
   divBeerName.className = COLBEERNAME
   pBeerName.className = BEERNAMEPARAGRAPH
+}
 
+function divBeerABVProperties (divBeerABV, pBeerABV) {
   divBeerABV.className = BEERABV
   pBeerABV.className = BEERABVPARAGRAPH
+}
 
+function divBeerTitleProperties (divBeerTitle, imgBeerTitle, name) {
   divBeerTitle.className = BEERTITLE
   imgBeerTitle.className = IMGCLASS
   imgBeerTitle.alt = name
+}
 
+function divBeerDescriptionProperties (divBeerDescription, pBeerDescription) {
   divBeerDescription.className = BEERDESCRIPTION
   pBeerDescription.className = BEERDESCRIPTIONPARAGRAPH
+}
 
+function divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
   divBeerAddToFavorites.className = BEERADDTOFAVORITES
   buttonbeerAddToFavoritesButton.className = BEERADDTOFAVORITESBEER
   buttonbeerAddToFavoritesButton.innerHTML = ADD
+}
+
+function pBeerProperties () {
+  const [pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, name, abv, image_url, description] = arguments
 
   pBeerName.innerHTML = name
   pBeerABV.innerHTML = abv
   imgBeerTitle.setAttribute(SRC, image_url)
   imgBeerTitle.setAttribute(WIDTH, TH70)
   pBeerDescription.innerHTML = description
+}
+
+function appendAllDivs () {
+  const [divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites, pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, buttonbeerAddToFavoritesButton] = arguments
 
   divBeerName.appendChild(pBeerName)
   divBeerABV.appendChild(pBeerABV)
   divBeerTitle.appendChild(imgBeerTitle)
   divBeerDescription.appendChild(pBeerDescription)
   divBeerAddToFavorites.appendChild(buttonbeerAddToFavoritesButton)
+}
+
+function combineToSingleDiv () {
+  const [divSingleRow, divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites] = arguments
 
   divSingleRow.appendChild(divBeerName)
   divSingleRow.appendChild(divBeerABV)
   divSingleRow.appendChild(divBeerTitle)
   divSingleRow.appendChild(divBeerDescription)
   divSingleRow.appendChild(divBeerAddToFavorites)
-
-  divContainer.appendChild(divSingleRow)
-  //autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
-  if (buttonSuccessExists()) {
-    addMoreButton()
-  }
 }
 
 function buttonSuccessExists () {
@@ -346,9 +407,22 @@ function buttonSuccessExists () {
 }
 
 function addMoreButton () {
-  const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
+  const [body] = document.getElementsByTagName(BODY)
   const divLoadMore = document.createElement(DIV)
   const buttonLoadMore = document.createElement(BUTTON)
+
+  /* divLoadMore.className = DIVFLEXCENTER
+  buttonLoadMore.className = BUTTONSUCCESS
+  buttonLoadMore.innerHTML = LOADMOREMESSAGE
+  buttonLoadMore.setAttribute(TYPE, BUTTON)
+
+  divLoadMore.appendChild(buttonLoadMore)
+  body.appendChild(divLoadMore) */
+  addMoreButtonAppendValues(body, divLoadMore, buttonLoadMore)
+}
+
+function addMoreButtonAppendValues () {
+  const [body, divLoadMore, buttonLoadMore] = arguments
 
   divLoadMore.className = DIVFLEXCENTER
   buttonLoadMore.className = BUTTONSUCCESS
@@ -360,17 +434,30 @@ function addMoreButton () {
 }
 
 function GenrateWarningBox () {
-  const body = document.getElementsByTagName(BODY)[ZERO_INDEX]
+  const [body] = document.getElementsByTagName(BODY)
   const row = document.createElement(DIV)
-  row.className = ROWCLASSNAMEWARNING
-  row.setAttribute(STYLE, ROWSTYLEWARNING)
   const errorMessage = document.createElement(P)
 
+  warningBoxAppend(body, row, errorMessage)
+  /* row.className = ROWCLASSNAMEWARNING
+  row.setAttribute(STYLE, ROWSTYLEWARNING)
+  errorMessage.textContent = WARNINGMESSAGE
+  errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
+  row.appendChild(errorMessage)
+  body.appendChild(row) */
+  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
+}
+
+function warningBoxAppend () {
+  const [body, row, errorMessage] = arguments
+
+  warningBoxAppend(body, row, errorMessage)
+  row.className = ROWCLASSNAMEWARNING
+  row.setAttribute(STYLE, ROWSTYLEWARNING)
   errorMessage.textContent = WARNINGMESSAGE
   errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
   row.appendChild(errorMessage)
   body.appendChild(row)
-  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
 }
 
 function ParseLocalStorage () {

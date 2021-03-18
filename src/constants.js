@@ -68,8 +68,8 @@ const ROWSTYLE = 'background-color: red;'
 const ERRORMESSAGE = 'There were no properties found for the given location.'
 const ERRORMESSAGESTYLE = 'margin: 0px 30px; background-color: red;'
 const SEARCHBUTTON = '.searchForBeer'
-const TRUE = true
-const FALSE = false
+const TRUE = 'true'
+const FALSE = 'false'
 const ERRORMESSAGECLASS = '.errorMessage'
 
 
