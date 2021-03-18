@@ -2,35 +2,20 @@ function autocomplete (inp, arr) {
   let currentFocus
   inp.addEventListener(INPUT, function (e) {
     let helperBlock, singleHint, i, userInputedValue = this.value
-    /*  close any already open lists of autocompleted values  */
     closeAllLists()
     if (!userInputedValue) { return false }
     currentFocus = -1
-    /*  create a DIV element that will contain the items (values):  */
     helperBlock = document.createElement(DIV)
     helperBlock.setAttribute(ID, this.id + AUTOCOMPLETELIST)
     helperBlock.setAttribute(CLASS, AUTOCOMPLETEITEMS)
-    /*  append the DIV element as a child of the autocomplete container:  */
     this.parentNode.appendChild(helperBlock)
-    /*  for each item in the array... */
     for (i = 0; i < arr.length; i++) {
-      /*  check if the item starts with the same letters as the text field value: */
       if (arr[i].substr(0, userInputedValue.length).toUpperCase() === userInputedValue.toUpperCase()) {
-        /*  create a DIV element for each matching element: */
         singleHint = document.createElement(DIV)
-        /*  make the matching letters bold: */
         singleHint.innerHTML = STRONGSTART + arr[i].substr(0, userInputedValue.length) + STRONGEND
         singleHint.innerHTML += arr[i].substr(userInputedValue.length)
-        /*  insert a input field that will hold the current array item's value: */
         singleHint.innerHTML += INPUTHIDDENSTART + arr[i] + INPUTHIDDENEND
-        /*  execute a function when someone clicks on the item value (DIV element): */
         singleHint.addEventListener(CLICK, function ({ target: { innerText } }) {
-          /*  insert the value for the autocomplete text field: */
-          // inp.value = e.target.innerText
-          inp.value = innerText
-          /*  close the list of autocompleted values,
-          (or any other open lists of autocompleted values: */
-          //closeAllLists()
         })
         helperBlock.appendChild(singleHint)
       }
@@ -46,24 +31,16 @@ function autocomplete (inp, arr) {
       document.querySelector(SEARCHBUTTON).disabled = false
     }
   })
-
-  /*  execute a function presses a key on the keyboard: */
   inp.addEventListener(KEYDOWN, function (e) {
     let beerNameInput = document.getElementById(this.id + AUTOCOMPLETELIST)
     const inputedBeer = document.querySelector('#' + BEERNAMEINPUT)
 
     if (beerNameInput) beerNameInput = beerNameInput.getElementsByTagName(DIV)
     if (e.keyCode === DOWNKEYPRESSED) {
-      /*  If the arrow DOWN key is pressed,
-      increase the currentFocus variable: */
       currentFocus++
-      /*  and and make the current item more visible: */
       addActive(beerNameInput)
-    } else if (e.keyCode === UPKEYPRESSED) { //up
-      /*  If the arrow UP key is pressed,
-      decrease the currentFocus variable: */
+    } else if (e.keyCode === UPKEYPRESSED) {
       currentFocus--
-      /*  and and make the current item more visible: */
       addActive(beerNameInput)
     } else if (e.keyCode === ENTERKEYPRESS) {
       if (isPatternValid(inputedBeer)) {
@@ -75,33 +52,17 @@ function autocomplete (inp, arr) {
     }
   })
   function addActive (x) {
-    /*  a function to classify an item as "active": */
     if (!x) return false
-    /*  start by removing the "active" class on all items:  */
     removeActive(x)
     if (currentFocus >= x.length) currentFocus = ZERO_INDEX
     if (currentFocus < ZERO_INDEX) currentFocus = (x.length - ONE_INDEX)
-    /*  add class "autocomplete-active":  */
     x[currentFocus].classList.add(AUTOCOMPLETEACTIVE)
   }
   function removeActive (x) {
-    /*  a function to remove the "active" class from all autocomplete items:  */
     for (let i = 0; i < x.length; i++) {
       x[i].classList.remove(AUTOCOMPLETEACTIVE)
     }
   }
-  /*  function closeAllLists (elmnt) {
-    const x = document.getElementsByClassName(AUTOCOMPLETEITEMS)
-    for (let i = 0; i < x.length; i++) {
-      if (elmnt !== x[i] && elmnt !== inp) {
-        x[i].parentNode.removeChild(x[i])
-      }
-    }
-  } */
-  /*  execute a function when someone clicks in the document: */
-  /*document.addEventListener(CLICK, function (e) {
-    closeAllLists(e.target)
-  })*/
 }
 
 function closeAllLists (elmnt) {
@@ -117,16 +78,26 @@ function closeAllLists (elmnt) {
   }
 }
 
-function createConfigObj (args) {
-  const [pageNumber, BeerName] = args
-  Object.defineProperty(PAGINATIONBEER, KEY, {
-    PAGINATIONBEER1: pageNumber,
-    PAGINATIONBEER2: BeerName
-  })
+function getApiAddress () {
+  const arrayOfSuccess = ParseLocalStorage()
+  const localStorageLen = arrayOfSuccess.length
+  const inputedBeer = arrayOfSuccess[localStorageLen - 1]
+  editConfigObj(window.pageIndex, inputedBeer)
+  return concatinateApi()
 }
 
-function saveSuccsess (field) { // добавление новой таски
-  // Retrieve the object from storage
+function concatinateApi () {
+  return Object.values(PAGINATIONBEER).join('')
+}
+
+function editConfigObj () {
+  const [pageV, beerN] = arguments
+
+  PAGINATIONBEER.pageValue = pageV
+  PAGINATIONBEER.beerName = beerN
+}
+
+function saveSuccsess (field) {
   let arrofSearches = []
   let finalArray = []
 
@@ -136,7 +107,6 @@ function saveSuccsess (field) { // добавление новой таски
     arrofSearches = JSON.parse(retrievedObject)
   }
   finalArray = [...arrofSearches, field]
-  // Put the object into storage
   localStorage.setItem(SUCCSESSFULSEARCHES, JSON.stringify(finalArray))
 }
 
@@ -155,24 +125,10 @@ document.addEventListener(CLICK, function ({ target: { className, localName } })
   const searchButton = clickButtonClasses || inDropDown
 
   eventHandling({ searchButton, isLoadMore, isScroll })
-  /*  if (clickButtonClasses || inDropDown) {
-    incrementPageIndex()
-    closeAllLists(event.target)
-    fetchAction(SEARCHBUTTON)
-  }
-  if (isLoadMore) {
-    incrementPageIndex()
-    fetchAction()
-  }
-  if (isScroll) {
-    document.body.scrollTop = ZERO_INDEX
-    document.documentElement.scrollTop = ZERO_INDEX
-  } */
 })
 
 function eventHandling (parameters) {
   const [searchButton, loadMore, scroll] = [parameters.searchButton, parameters.isLoadMore, parameters.isScroll]
-  //(parameters:{isLoadMore, isScroll, searchButton})
   if (searchButton) {
     incrementPageIndex()
     closeAllLists(event.target)
@@ -203,7 +159,6 @@ function generateRedBox () {
   errorMessage.setAttribute(STYLE, ERRORMESSAGESTYLE)
   row.appendChild(errorMessage)
   getAllBlocks.appendChild(row)
-  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
 }
 
 function deleteAllDivs () {
@@ -211,9 +166,7 @@ function deleteAllDivs () {
 
   while (deleteAllBlocks.children.length !== ZERO_INDEX) {
     deleteAllBlocks.removeChild(deleteAllBlocks.children[ZERO_INDEX])
-    //deleteAllBlocks.children.splice(ZERO_INDEX, ONE_INDEX)
   }
-  //if (isRedBoxExists) {}
 }
 
 function deleteWarning () {
@@ -224,21 +177,6 @@ function deleteWarning () {
   deleteAllBlocks.removeChild(warningElement)
 }
 
-function getApiAddress () {
-  const arrayOfSuccess = ParseLocalStorage()
-  const localStorageLen = arrayOfSuccess.length
-  const inputedBeer = arrayOfSuccess[localStorageLen - 1]
-  const searchedBeer = PAGINATIONBEER1 + window.pageIndex + PAGINATIONBEER2 + inputedBeer
-
-  return searchedBeer
-}
-
-/*  function fetchMoreBeers () {
-  fetch(getApiAddress())
-    .then((res) => { return res.json() })
-    .then((data) => { data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description)) })
-    .catch(function (params) { deleteAllDivs(); generateRedBox() })
-} */
 
 function fetchAction (action) {
   if (action === SEARCHBUTTON || action === ENTERKEYPRESS) {
@@ -251,7 +189,6 @@ function fetchAction (action) {
     .then(res => { return res.json() })
     .then((data) => {
       if (data.length) {
-        //data.forEach(e => createDivBeer(e.name, e.abv, e.image_url, e.description))
         data.forEach(({ name, abv, image_url, description }) => createDivBeer(name, abv, image_url, description))
       } else {
         GenerateCorrectBox()
@@ -297,7 +234,6 @@ function createDivBeer () {
   const [name, abv, image_url, description] = arguments
   deleteRedBox()
   deleteYellowBox()
-  //const isLoadMoreState = loadMore !== LOADMORESTRING
   const divContainer = document.querySelector(CONTAINERBEER)
 
   const arrOfShownBeers = ParseLocalStorage()
@@ -410,14 +346,6 @@ function addMoreButton () {
   const [body] = document.getElementsByTagName(BODY)
   const divLoadMore = document.createElement(DIV)
   const buttonLoadMore = document.createElement(BUTTON)
-
-  /* divLoadMore.className = DIVFLEXCENTER
-  buttonLoadMore.className = BUTTONSUCCESS
-  buttonLoadMore.innerHTML = LOADMOREMESSAGE
-  buttonLoadMore.setAttribute(TYPE, BUTTON)
-
-  divLoadMore.appendChild(buttonLoadMore)
-  body.appendChild(divLoadMore) */
   addMoreButtonAppendValues(body, divLoadMore, buttonLoadMore)
 }
 
@@ -439,19 +367,11 @@ function GenrateWarningBox () {
   const errorMessage = document.createElement(P)
 
   warningBoxAppend(body, row, errorMessage)
-  /* row.className = ROWCLASSNAMEWARNING
-  row.setAttribute(STYLE, ROWSTYLEWARNING)
-  errorMessage.textContent = WARNINGMESSAGE
-  errorMessage.setAttribute(STYLE, WARNINGMESSAGESTYLE)
-  row.appendChild(errorMessage)
-  body.appendChild(row) */
-  //document.querySelectorAll(SEARCHBUTTON).disabled = TRUE
 }
 
 function warningBoxAppend () {
   const [body, row, errorMessage] = arguments
 
-  warningBoxAppend(body, row, errorMessage)
   row.className = ROWCLASSNAMEWARNING
   row.setAttribute(STYLE, ROWSTYLEWARNING)
   errorMessage.textContent = WARNINGMESSAGE
@@ -467,10 +387,6 @@ function ParseLocalStorage () {
   return parsedObj
 }
 
-/*  An array containing all the country names in the world: */
-//let countries
-
-/*  initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:  */
 autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
 
 function scrollFunction () {
