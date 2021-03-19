@@ -14,7 +14,7 @@
   <body>
     <div class="row">
       <div class="col-md-2 offset-md-4"><h1 class="d-inline p-2 align-self-center">BeerWebSite</h1></div>
-      <div class="col-md-1 offset-md-1"><button type="button" class="btn btn-info p-2">Favourites</button></div>
+      <div class="col-md-1 offset-md-1"><button type="button" class="btn btn-info p-2 FavouritesListButton" data-toggle="modal" data-target="#FavoritesListModal" disabled>Favourites</button></div>
       <div class="col-md-1 offset-md-1">
         <!--<form autocomplete="off">-->
           <div class="col-10">
@@ -29,9 +29,44 @@
         <!--</form>-->
       </div>
     </div>
+    <div class="modal fade" id="FavoritesListModal" tabindex="-1" role="dialog" aria-labelledby="FavoritesListModalTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="FavoritesTitle">Favorites</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!--<div class="containerLoadList">
+              <div class="row single-div border border" style="padding: 25px 50px;">
+                <div class="col-2 LoadName">
+                  <p class="loadNameParagraph">Your Beer Name</p>
+                </div>
+                <div class="col-1 beerABV">
+                  <p class="beerABVParagraph"></p>
+                </div>
+                <div class="col-3 beerTitle">
+                  <img class = 'imgClass' src="" alt="Trulli" width="70px">
+                </div>
+                <div class="col-5 beerDescription">
+                  <p class="beerDescriptionParagraph">
+                    What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
+                  </p>
+                </div>
+                <div class = "col-1 beerAddToFavorites">
+                  <button class = "btn btn-primary beerAddToFavoritesButton">Remove</button>
+                </div>
+              </div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
     <p id="result"></p>
     <div class="containerBeer">
-      <!--<div class="row single-div border border">
+      <!--<div class="row single-div border border" style="margin: 25px 50px;">
         <div class="col-2 beerName">
           <p class="beerNameParagraph">Your Beer Name</p>
         </div>
@@ -39,12 +74,15 @@
           <p class="beerABVParagraph"></p>
         </div>
         <div class="col-3 beerTitle">
-          <img class = 'imgClass' src="" alt="Trulli">
+          <img class = 'imgClass' src="" alt="Trulli" width="70px">
         </div>
-        <div class="col-6 beerDescription">
+        <div class="col-5 beerDescription">
           <p class="beerDescriptionParagraph">
             What is Lorem Ipsum Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum has been the industry's standard dummy text ever since the 1500s when an unknown printer took a galley of type and scrambled it to make a type specimen book it has?
           </p>
+        </div>
+        <div class = "col-1 beerAddToFavorites">
+          <button class = "btn btn-primary beerAddToFavoritesButton">Remove</button>
         </div>
       </div>-->
     </div>

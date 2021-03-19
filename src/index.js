@@ -78,16 +78,21 @@ function closeAllLists (elmnt) {
   }
 }
 
+function getApiForSingleBeer (beerName) {
+  editConfigLoadSingleBeer(beerName)
+  return concatinateApi(LOADBEERBYBEER)
+}
+
 function getApiAddress () {
-  const arrayOfSuccess = ParseLocalStorage()
+  const arrayOfSuccess = ParseLocalStorage(SUCCSESSFULSEARCHES)
   const localStorageLen = arrayOfSuccess.length
   const inputedBeer = arrayOfSuccess[localStorageLen - 1]
   editConfigObj(window.pageIndex, inputedBeer)
-  return concatinateApi()
+  return concatinateApi(PAGINATIONBEER)
 }
 
-function concatinateApi () {
-  return Object.values(PAGINATIONBEER).join('')
+function concatinateApi (LSLink) {
+  return Object.values(LSLink).join('')
 }
 
 function editConfigObj () {
@@ -97,17 +102,27 @@ function editConfigObj () {
   PAGINATIONBEER.beerName = beerN
 }
 
-function saveSuccsess (field) {
+function editConfigLoadSingleBeer () {
+  const [beerN] = arguments
+
+  LOADBEERBYBEER.beerValue = beerN
+}
+
+function saveSuccsess (field, storageName) {
   let arrofSearches = []
   let finalArray = []
 
-  const retrievedObject = localStorage.getItem(SUCCSESSFULSEARCHES)
+  const retrievedObject = localStorage.getItem(storageName)
 
   if (retrievedObject !== null) {
     arrofSearches = JSON.parse(retrievedObject)
   }
   finalArray = [...arrofSearches, field]
-  localStorage.setItem(SUCCSESSFULSEARCHES, JSON.stringify(finalArray))
+  localStorage.setItem(storageName, JSON.stringify(finalArray))
+}
+
+function saveArrayInLocalStorage (array, storageName) {
+  localStorage.setItem(storageName, JSON.stringify(array))
 }
 
 function isPatternValid (inputField) {
@@ -124,14 +139,22 @@ document.addEventListener(CLICK, function ({ target: { className, localName } })
   const inDropDown = localName === ISDROPDOWNELEMENT
   const searchButton = clickButtonClasses || inDropDown
   const isAddToFavorites = className === BEERADDTOFAVORITESBEER
+  const removeFromFavorites = className === BEERREMOVEFROMFAVORITESBEER
+  const showModalOfFavorites = className === BUTTONFAVORITES
+  const removeElementFromModal = className === BEERREMOVEBEERFROMMODAL
 
-  eventHandling(searchButton, isLoadMore, isScroll, isAddToFavorites)
+  eventHandling(searchButton, isLoadMore, isScroll, isAddToFavorites, removeFromFavorites, inDropDown, showModalOfFavorites, removeElementFromModal)
 })
 
 function eventHandling () {
-  const [searchButton, loadMore, scroll, addFavorites] = arguments
+  const [searchButton, loadMore, scroll, addFavorites, removeFavorites, DropedDown, showModalFavorites, removeFromModal] = arguments
+  const [clickedBeerNameBlock] = event.target.parentNode.parentNode.children
+  const [clickedBeerNameText] = clickedBeerNameBlock.children
   if (searchButton) {
     incrementPageIndex()
+    if (DropedDown) {
+      changeIndexToClickedDiv()
+    }
     closeAllLists(event.target)
     fetchAction(SEARCHBUTTON)
   }
@@ -143,6 +166,61 @@ function eventHandling () {
     document.body.scrollTop = ZERO_INDEX
     document.documentElement.scrollTop = ZERO_INDEX
   }
+  if (addFavorites) {
+    changeAddToRemove()
+    saveSuccsess(clickedBeerNameText.innerText, FAVORITESSEARCHES)
+    EnableButtonIfFavoritesExists()
+  }
+  if (removeFavorites) {
+    changeRemoveToAdd()
+    removeItemFromLS(clickedBeerNameText.innerText)
+    EnableButtonIfFavoritesExists()
+  }
+  if (showModalFavorites) {
+    const arrayOfSuccess = ParseLocalStorage(FAVORITESSEARCHES)
+    //const localStorageLen = arrayOfSuccess.length
+    //const inputedBeer = arrayOfSuccess[localStorageLen - 1]
+    deleteAllContentFromModal()
+    arrayOfSuccess.forEach(e => fetchActionInLoop(e))
+  }
+  if (removeFromModal) {
+    DeleteItemFromModalVisualy(clickedBeerNameText.innerText)
+    removeItemFromLS(clickedBeerNameText.innerText)
+  }
+}
+
+function DeleteItemFromModalVisualy (indexDelete) {
+  const ModalBodyDiv = document.querySelector(MODALBODY)
+  const ModalArray = [...ModalBodyDiv.children]
+  ModalArray.forEach((e) => { const { children: [{ innerText }] } = e; if (innerText === indexDelete) { ModalBodyDiv.removeChild(e) } })
+}
+
+function removeItemFromLS (itemsName) {
+  const LSLoad = ParseLocalStorage(FAVORITESSEARCHES)
+  const itemIndex = LSLoad.indexOf(itemsName)
+  LSLoad.splice(itemIndex, ONE_INDEX)
+  saveArrayInLocalStorage(LSLoad, FAVORITESSEARCHES)
+}
+
+function changeAddToRemove () {
+  const clickedButton = event.target
+
+  clickedButton.classList = BEERREMOVEFROMFAVORITESBEER
+  clickedButton.innerHTML = REMOVE
+}
+
+function changeRemoveToAdd () {
+  const clickedButton = event.target
+
+  clickedButton.classList = BEERADDTOFAVORITESBEER
+  clickedButton.innerHTML = ADD
+}
+
+function changeIndexToClickedDiv () {
+  const inputBeers = document.getElementById(BEERNAMEINPUT)
+  const clickedHitText = event.target.parentNode.innerText
+
+  inputBeers.value = clickedHitText
 }
 
 function incrementPageIndex () {
@@ -183,7 +261,7 @@ function fetchAction (action) {
     window.pageIndex = ONE_INDEX
   }
   const inputedBeer = document.querySelector('#' + BEERNAMEINPUT).value
-  saveSuccsess(inputedBeer)
+  saveSuccsess(inputedBeer, SUCCSESSFULSEARCHES)
 
   fetch(getApiAddress())
     .then(res => { return res.json() })
@@ -195,6 +273,15 @@ function fetchAction (action) {
       }
     })
     .catch((params) => { deleteAllDivs(); generateRedBox() })
+}
+
+function fetchActionInLoop (beerName) {
+  fetch(getApiForSingleBeer(beerName))
+    .then(res => { return res.json() })
+    .then((data) => {
+      data.forEach(({ name, abv, image_url, description }) => createDivsInModal(name, abv, image_url, description))
+    })
+    .catch((params) => { console.error('error in single beer load') })
 }
 
 function GenerateCorrectBox () {
@@ -230,15 +317,59 @@ function deleteYellowBox () {
   }
 }
 
+function deleteAllContentFromModal () {
+  const divContainer = document.querySelector(MODALBODY)
+  while (divContainer.children.length !== ZERO_INDEX) {
+    divContainer.removeChild(divContainer.children[ZERO_INDEX])
+  }
+}
+
+function createDivsInModal () {
+  const [name, abv, image_url, description] = arguments
+
+  const divContainer = document.querySelector(MODALBODY)
+
+  //const arrOfShownBeers = ParseLocalStorage(FAVORITESSEARCHES)
+  const currentBeerIndex = divContainer.children.length
+
+  const divSingleRow = document.createElement(DIV)
+
+  const divBeerName = document.createElement(DIV)
+  const pBeerName = document.createElement(P)
+
+  const divBeerABV = document.createElement(DIV)
+  const pBeerABV = document.createElement(P)
+
+  const divBeerTitle = document.createElement(DIV)
+  const imgBeerTitle = document.createElement(IMG)
+
+  const divBeerDescription = document.createElement(DIV)
+  const pBeerDescription = document.createElement(P)
+
+  const divBeerAddToFavorites = document.createElement(DIV)
+  const buttonbeerAddToFavoritesButton = document.createElement(BUTTON)
+
+  divSinglePropertiesModal(divSingleRow, currentBeerIndex)
+  divBeerNameProperties(divBeerName, pBeerName)
+  divBeerABVProperties(divBeerABV, pBeerABV)
+  divBeerTitleProperties(divBeerTitle, imgBeerTitle, name)
+  divBeerDescriptionProperties(divBeerDescription, pBeerDescription)
+  divBeerAddToFavoritesPropertiesModal(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+  pBeerProperties(pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, name, abv, image_url, description)
+  appendAllDivs(divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites, pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, buttonbeerAddToFavoritesButton)
+  combineToSingleDiv(divSingleRow, divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites)
+
+  divContainer.appendChild(divSingleRow)
+}
+
 function createDivBeer () {
   const [name, abv, image_url, description] = arguments
   deleteRedBox()
   deleteYellowBox()
   const divContainer = document.querySelector(CONTAINERBEER)
 
-  const arrOfShownBeers = ParseLocalStorage()
-  const BeerCollection = document.querySelector(CONTAINERBEER)
-  const currentBeerIndex = BeerCollection.children.length
+  //const arrOfShownBeers = ParseLocalStorage(SUCCSESSFULSEARCHES)
+  const currentBeerIndex = divContainer.children.length
 
   const divSingleRow = document.createElement(DIV)
 
@@ -279,6 +410,12 @@ function divSingleProperties (divSingleRow, currentBeerIndex) {
   divSingleRow.style.margin = MARGINSLEFTRIGHT
 }
 
+function divSinglePropertiesModal (divSingleRow, currentBeerIndex) {
+  divSingleRow.className = SINGLEBORDERROW
+  divSingleRow.id = MODAL + currentBeerIndex
+  divSingleRow.style.padding = MARGINSLEFTRIGHT
+}
+
 function divBeerNameProperties (divBeerName, pBeerName) {
   divBeerName.className = COLBEERNAME
   pBeerName.className = BEERNAMEPARAGRAPH
@@ -298,6 +435,12 @@ function divBeerTitleProperties (divBeerTitle, imgBeerTitle, name) {
 function divBeerDescriptionProperties (divBeerDescription, pBeerDescription) {
   divBeerDescription.className = BEERDESCRIPTION
   pBeerDescription.className = BEERDESCRIPTIONPARAGRAPH
+}
+
+function divBeerAddToFavoritesPropertiesModal (divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
+  divBeerAddToFavorites.className = BEERREMOVEFROMMODAL
+  buttonbeerAddToFavoritesButton.className = BEERREMOVEBEERFROMMODAL
+  buttonbeerAddToFavoritesButton.innerHTML = REMOVE
 }
 
 function divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
@@ -380,14 +523,14 @@ function warningBoxAppend () {
   body.appendChild(row)
 }
 
-function ParseLocalStorage () {
-  const retrievedObject = localStorage.getItem(SUCCSESSFULSEARCHES)
+function ParseLocalStorage (LSName) {
+  const retrievedObject = localStorage.getItem(LSName)
   const parsedObj = JSON.parse(retrievedObject)
 
   return parsedObj
 }
 
-autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage())
+autocomplete(document.getElementById(BEERNAMEINPUT), ParseLocalStorage(SUCCSESSFULSEARCHES))
 
 function scrollFunction () {
   const scrollBtn = document.querySelector(GOTOTOPID)
@@ -396,4 +539,18 @@ function scrollFunction () {
   isScrollLessThan ? scrollBtn.style.display = BLOCK : scrollBtn.style.display = NONE
 }
 
+function EnableButtonIfFavoritesExists () {
+  const areFavoritesExists = ParseLocalStorage(FAVORITESSEARCHES)
+  const buttonControl = document.querySelector(BUTTONFAVORITESCLASSNAME)
+  if (areFavoritesExists !== null) {
+    buttonControl.disabled = false
+  } else {
+    buttonControl.disabled = true
+  }
+}
+
 window.onscroll = function () { scrollFunction() }
+
+window.onload = function () {
+  EnableButtonIfFavoritesExists()
+}
