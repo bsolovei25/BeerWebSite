@@ -5,8 +5,6 @@ const BUTTON = 'button'
 const IMG = 'IMG'
 const ID = 'id'
 const SRC = 'src'
-const TWO_INDEX = 2
-const TWENTY_EIGHT = 28
 const AUTOCOMPLETELIST = 'autocomplete-list'
 const AUTOCOMPLETEACTIVE = 'autocomplete-active'
 const CLASS = 'class'
@@ -21,9 +19,11 @@ const ZERO_INDEX = 0
 const ONE_INDEX = 1
 const KEYDOWN = 'keydown'
 const KEYUP = 'keyup'
-const FORTY = 40
-const THIRTYEIGHT = 38
-const THIRTEEN = 13
+const KEY = 'key'
+const DOWNKEYPRESSED = 40
+const UPKEYPRESSED = 38
+const ENTERKEYPRESS = 13
+const FIRSTBLOCKHEIGHT = 20
 const MINONE = -1
 const BUTTONBEER = 'btn btn-primary btn-sm searchForBeer'
 const SINGLEBORDERROW = 'row single-div border border'
@@ -46,19 +46,17 @@ const BEERADDTOFAVORITESBEER = 'btn btn-primary beerAddToFavoritesButton'
 const ADD = 'Add'
 const MARGINSLEFTRIGHT = '25px 50px'
 const BEERNAMEINPUT = 'beerNameInput'
-const APIFORBEERNAME = 'https://api.punkapi.com/v2/beers?beer_name='
-const PAGINATIONBEER1 = 'https://api.punkapi.com/v2/beers?page='
-const PAGINATIONBEER2 = '&beer_name='
 const SUCCSESSFULSEARCHES = 'SuccsessArray'
 const BODY = 'body'
 const DIVFLEXCENTER = 'd-flex justify-content-center'
 const BUTTONSUCCESS = 'btn btn-success'
 const CLASSBUTTONSUCCESS = '.btn-success'
-const LOADMORESTRING = 'Load More Bears'
+const LOADMOREMESSAGE = 'Load More Bears'
 const BLOCK = 'block'
 const NONE = 'none'
 const GOTOTOPCLASS = 'goToTop'
 const GOTOTOPID = '#goToTopid'
+const ACTIONARROWCLICK = 'fa fa-arrow-up'
 const ISDROPDOWNELEMENT = 'strong'
 
 const ROWCLASSNAME = 'row single-div border errorMessage'
@@ -67,13 +65,13 @@ const ROWSTYLE = 'background-color: red;'
 const ERRORMESSAGE = 'There were no properties found for the given location.'
 const ERRORMESSAGESTYLE = 'margin: 0px 30px; background-color: red;'
 const SEARCHBUTTON = '.searchForBeer'
-const TRUE = true
-const FALSE = false
-const ERRORMESSAGESTRING = '.errorMessage'
+const TRUE = 'true'
+const FALSE = 'false'
+const ERRORMESSAGECLASS = '.errorMessage'
 
 
 const ROWCLASSNAMEWARNING = 'row single-div border warningMessage'
 const ROWSTYLEWARNING = 'background-color: yellow; margin-top: 25px;'
 const WARNINGMESSAGE = 'No more pages avalible'
 const WARNINGMESSAGESTYLE = 'padding-left:40%;margin: 0px 30px; background-color: yellow;'
-const WARNINGMESSAGESTRING = '.warningMessage'
+const WARNINGMESSAGECLASS = '.warningMessage'
