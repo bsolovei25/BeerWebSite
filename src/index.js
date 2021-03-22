@@ -46,6 +46,7 @@ function autocomplete (inp, arr) {
       if (isPatternValid(inputedBeer)) {
         e.preventDefault()
       } else {
+        closeAllLists()
         incrementPageIndex()
         fetchAction(ENTERKEYPRESS)
       }
@@ -142,12 +143,13 @@ document.addEventListener(CLICK, function ({ target: { className, localName } })
   const removeFromFavorites = className === BEERREMOVEFROMFAVORITESBEER
   const showModalOfFavorites = className === BUTTONFAVORITES
   const removeElementFromModal = className === BEERREMOVEBEERFROMMODAL
+  const isBeerBeenClicked = event.target.parentNode.children.length === MODALCHILDRENLEN
 
-  eventHandling(searchButton, isLoadMore, isScroll, isAddToFavorites, removeFromFavorites, inDropDown, showModalOfFavorites, removeElementFromModal)
+  eventHandling(searchButton, isLoadMore, isScroll, isAddToFavorites, removeFromFavorites, inDropDown, showModalOfFavorites, removeElementFromModal, isBeerBeenClicked)
 })
 
 function eventHandling () {
-  const [searchButton, loadMore, scroll, addFavorites, removeFavorites, DropedDown, showModalFavorites, removeFromModal] = arguments
+  const [searchButton, loadMore, scroll, addFavorites, removeFavorites, DropedDown, showModalFavorites, removeFromModal, beerClick] = arguments
   const [clickedBeerNameBlock] = event.target.parentNode.parentNode.children
   const [clickedBeerNameText] = clickedBeerNameBlock.children
   if (searchButton) {
@@ -178,8 +180,6 @@ function eventHandling () {
   }
   if (showModalFavorites) {
     const arrayOfSuccess = ParseLocalStorage(FAVORITESSEARCHES)
-    //const localStorageLen = arrayOfSuccess.length
-    //const inputedBeer = arrayOfSuccess[localStorageLen - 1]
     deleteAllContentFromModal()
     arrayOfSuccess.forEach(e => fetchActionInLoop(e))
   }
@@ -187,6 +187,17 @@ function eventHandling () {
     DeleteItemFromModalVisualy(clickedBeerNameText.innerText)
     removeItemFromLS(clickedBeerNameText.innerText)
   }
+  if (beerClick) {
+    generateSingleModal()
+  }
+}
+
+function generateSingleModal () {
+  document.querySelector(LOADSINGLENAMEPARAGRAPH).innerText = event.target.parentNode.children[ZERO_INDEX].innerText
+  document.querySelector(BEERSINGLEABVPARAGRAPH).innerHTML = event.target.parentNode.children[ONE_INDEX].innerText
+  document.querySelector(IMGSINGLECLASS).src = event.target.parentNode.children[SECONDDIVCHILD].children[ZERO_INDEX].src
+  document.querySelector(BEERSINGLEDESCRIPTIONPARAGRAPH).innerHTML = event.target.parentNode.children[THIRDDIVCHILD].innerText
+  $(SINGLELISTMODAL).modal('show')
 }
 
 function DeleteItemFromModalVisualy (indexDelete) {
@@ -393,7 +404,7 @@ function createDivBeer () {
   divBeerABVProperties(divBeerABV, pBeerABV)
   divBeerTitleProperties(divBeerTitle, imgBeerTitle, name)
   divBeerDescriptionProperties(divBeerDescription, pBeerDescription)
-  divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+  divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton, name)
   pBeerProperties(pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, name, abv, image_url, description)
   appendAllDivs(divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites, pBeerName, pBeerABV, imgBeerTitle, pBeerDescription, buttonbeerAddToFavoritesButton)
   combineToSingleDiv(divSingleRow, divBeerName, divBeerABV, divBeerTitle, divBeerDescription, divBeerAddToFavorites)
@@ -443,7 +454,35 @@ function divBeerAddToFavoritesPropertiesModal (divBeerAddToFavorites, buttonbeer
   buttonbeerAddToFavoritesButton.innerHTML = REMOVE
 }
 
-function divBeerAddToFavoritesProperties(divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
+function divBeerAddToFavoritesProperties () {
+  const [divBeerAddToFavorites, buttonbeerAddToFavoritesButton, name] = arguments
+  const FavoritesArray = ParseLocalStorage(FAVORITESSEARCHES)
+
+  if (FavoritesArray) {
+    FavoritesArray.every((e) => {
+      /*  if (name !== e) {
+        createAddButton(divBeerAddToFavorites, buttonbeerAddToFavoritesButton); return true ;
+      } else { createRemoveButton(divBeerAddToFavorites, buttonbeerAddToFavoritesButton); return false }  */
+      if (name === e) {
+        createRemoveButton(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+        return false
+      } else {
+        createAddButton(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+        return true
+      }
+    })
+  } else {
+    createAddButton(divBeerAddToFavorites, buttonbeerAddToFavoritesButton)
+  }
+}
+
+function createRemoveButton (divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
+  divBeerAddToFavorites.className = BEERADDTOFAVORITES
+  buttonbeerAddToFavoritesButton.className = BEERREMOVEFROMFAVORITESBEER
+  buttonbeerAddToFavoritesButton.innerHTML = REMOVE
+}
+
+function createAddButton (divBeerAddToFavorites, buttonbeerAddToFavoritesButton) {
   divBeerAddToFavorites.className = BEERADDTOFAVORITES
   buttonbeerAddToFavoritesButton.className = BEERADDTOFAVORITESBEER
   buttonbeerAddToFavoritesButton.innerHTML = ADD
